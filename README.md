@@ -24,17 +24,20 @@ SmartFit is designed to help users track their fitness goals, workouts, and prog
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/Shai-Shargal/SmartFit.git
 cd SmartFit
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm start
 ```
@@ -55,4 +58,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Shai Shargal - [@Shai-Shargal](https://github.com/Shai-Shargal)
 
-Project Link: [https://github.com/Shai-Shargal/SmartFit](https://github.com/Shai-Shargal/SmartFit) 
+Project Link: [https://github.com/Shai-Shargal/SmartFit](https://github.com/Shai-Shargal/SmartFit)
