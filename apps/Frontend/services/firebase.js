@@ -24,8 +24,6 @@ const firebaseConfig = {
   measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
-console.log("Firebase config:", firebaseConfig);
-
 const app = initializeApp(firebaseConfig);
 console.log("Firebase app initialized successfully");
 
@@ -37,6 +35,5 @@ console.log("Firebase auth initialized successfully");
 
 export { auth };
 export const db = getFirestore(app);
-console.log("Firestore database initialized:", db);
 export const storage = getStorage(app);
 export default app;

@@ -5,6 +5,7 @@ import { StatusBar } from "react-native";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import MainScreen from "./screens/MainScreen";
+import ProfileSetupScreen from "./screens/ProfileSetupScreen";
 import MealTrackingScreen from "./screens/MealTrackingScreen";
 import WorkoutTrackingScreen from "./screens/WorkoutTrackingScreen";
 import AIAssistantScreen from "./screens/AIAssistantScreen";
@@ -24,6 +25,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Main" component={MainScreen} />
+        <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
         <Stack.Screen name="MealTracking" component={MealTrackingScreen} />
         <Stack.Screen
           name="WorkoutTracking"

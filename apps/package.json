@@ -5,9 +5,12 @@
   "private": true,
   "scripts": {
     "dev": "concurrently --prefix \"[{name}]\" --names \"Frontend,Backend\" --prefix-colors \"cyan,yellow\" \"npm run frontend:dev\" \"npm run backend:dev\"",
+    "dev:web": "concurrently --prefix \"[{name}]\" --names \"Frontend,Backend\" --prefix-colors \"cyan,yellow\" \"npm run frontend:web\" \"npm run backend:dev\"",
     "start": "concurrently --prefix \"[{name}]\" --names \"Frontend,Backend\" --prefix-colors \"cyan,yellow\" \"npm run frontend:start\" \"npm run backend:start\"",
     "frontend:dev": "cd Frontend && npm start",
     "frontend:start": "cd Frontend && npm start",
+    "frontend:web": "cd Frontend && npm run web",
+    "frontend:android": "cd Frontend && npm run android",
     "backend:dev": "cd Backend && npm run dev",
     "backend:start": "cd Backend && npm start",
     "install:all": "npm run install:frontend && npm run install:backend",

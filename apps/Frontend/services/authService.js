@@ -23,7 +23,7 @@ export const authService = {
   },
 
   // Register new user
-  register: async (email, password, username) => {
+  register: async (email, password) => {
     try {
       console.log("Starting registration for:", email);
       console.log("Auth object:", auth);
@@ -38,16 +38,15 @@ export const authService = {
       console.log("User object:", user);
       console.log("User UID:", user.uid);
 
-      // Create user profile
+      // Create basic user profile (without displayName)
       console.log("Attempting to create user profile in Firestore...");
       try {
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           email: user.email,
-          username: username,
-          displayName: username,
           createdAt: new Date(),
           lastLogin: new Date(),
+          profileSetupCompleted: false, // Flag to show profile setup on first login
           profile: {
             fitnessLevel: "beginner",
             goals: [],

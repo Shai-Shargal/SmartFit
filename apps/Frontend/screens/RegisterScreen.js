@@ -19,7 +19,6 @@ import { authService } from "../services/authService";
 const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = ({ navigation }) => {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,12 +27,7 @@ const RegisterScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (
-      !username.trim() ||
-      !email.trim() ||
-      !password.trim() ||
-      !confirmPassword.trim()
-    ) {
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
@@ -58,14 +52,14 @@ const RegisterScreen = ({ navigation }) => {
     setIsLoading(true);
 
     try {
-      await authService.register(email, password, username);
+      await authService.register(email, password);
       Alert.alert(
         "Success",
-        "Account created successfully! Welcome to SmartFit!",
+        "Account created successfully! Please complete your profile setup.",
         [
           {
             text: "OK",
-            onPress: () => navigation.replace("Main"),
+            onPress: () => navigation.replace("ProfileSetup"),
           },
         ]
       );
@@ -145,25 +139,6 @@ const RegisterScreen = ({ navigation }) => {
               <Text style={styles.formSubtitle}>
                 Start your fitness journey today
               </Text>
-
-              {/* Username Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons
-                  name="person"
-                  size={20}
-                  color="#6366f1"
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Username"
-                  placeholderTextColor="#9ca3af"
-                  value={username}
-                  onChangeText={setUsername}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
 
               {/* Email Input */}
               <View style={styles.inputContainer}>

@@ -47,16 +47,26 @@ const MainScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    // Fetch greeting from backend
-    const fetchGreeting = async () => {
+    // Check profile setup status and fetch greeting
+    const checkProfileAndFetchGreeting = async () => {
       try {
+        // First check if profile setup is completed
+        const profileStatus = await apiService.getProfileSetupStatus();
+
+        if (!profileStatus.profileSetupCompleted) {
+          // Redirect to profile setup if not completed
+          navigation.replace("ProfileSetup");
+          return;
+        }
+
+        // Fetch greeting if profile is set up
         const greeting = await apiService.getUserGreeting();
         setGreetingData({
           greeting: greeting.greeting,
           username: greeting.username,
         });
       } catch (error) {
-        console.error("Error fetching greeting:", error);
+        console.error("Error checking profile or fetching greeting:", error);
         // Fallback to local greeting if backend fails
         const localGreeting = getGreeting();
         setGreetingData({
@@ -66,8 +76,8 @@ const MainScreen = ({ navigation }) => {
       }
     };
 
-    fetchGreeting();
-  }, []);
+    checkProfileAndFetchGreeting();
+  }, [navigation]);
 
   const handleTrackMeal = () => {
     navigation.navigate("MealTracking");
