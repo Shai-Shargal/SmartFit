@@ -1,0 +1,32 @@
+{
+  "name": "smartfit-apps",
+  "version": "1.0.0",
+  "description": "SmartFit Frontend and Backend applications",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --prefix \"[{name}]\" --names \"Frontend,Backend\" --prefix-colors \"cyan,yellow\" \"npm run frontend:dev\" \"npm run backend:dev\"",
+    "start": "concurrently --prefix \"[{name}]\" --names \"Frontend,Backend\" --prefix-colors \"cyan,yellow\" \"npm run frontend:start\" \"npm run backend:start\"",
+    "frontend:dev": "cd Frontend && npm start",
+    "frontend:start": "cd Frontend && npm start",
+    "backend:dev": "cd Backend && npm run dev",
+    "backend:start": "cd Backend && npm start",
+    "install:all": "npm run install:frontend && npm run install:backend",
+    "install:frontend": "cd Frontend && npm install",
+    "install:backend": "cd Backend && npm install",
+    "clean": "npm run clean:frontend && npm run clean:backend",
+    "clean:frontend": "cd Frontend && rm -rf node_modules && rm -f package-lock.json",
+    "clean:backend": "cd Backend && rm -rf node_modules && rm -f package-lock.json"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "smartfit",
+    "fitness",
+    "react-native",
+    "express",
+    "firebase"
+  ],
+  "author": "",
+  "license": "MIT"
+}

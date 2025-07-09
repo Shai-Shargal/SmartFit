@@ -2,12 +2,12 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { StatusBar } from "react-native";
-import LoginScreen from "./src/screens/LoginScreen";
-import RegisterScreen from "./src/screens/RegisterScreen";
-import MainScreen from "./src/screens/MainScreen";
-import MealTrackingScreen from "./src/screens/MealTrackingScreen";
-import WorkoutTrackingScreen from "./src/screens/WorkoutTrackingScreen";
-import AIAssistantScreen from "./src/screens/AIAssistantScreen";
+import LoginScreen from "./screens/LoginScreen";
+import RegisterScreen from "./screens/RegisterScreen";
+import MainScreen from "./screens/MainScreen";
+import MealTrackingScreen from "./screens/MealTrackingScreen";
+import WorkoutTrackingScreen from "./screens/WorkoutTrackingScreen";
+import AIAssistantScreen from "./screens/AIAssistantScreen";
 
 const Stack = createStackNavigator();
 

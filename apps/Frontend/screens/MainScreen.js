@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { apiService } from "../services/apiService";
 
 const { width, height } = Dimensions.get("window");
 
@@ -23,6 +24,10 @@ const MainScreen = ({ navigation }) => {
   });
 
   const [currentTime, setCurrentTime] = useState("");
+  const [greetingData, setGreetingData] = useState({
+    greeting: "Good morning",
+    username: "User",
+  });
 
   useEffect(() => {
     const updateTime = () => {
@@ -39,6 +44,29 @@ const MainScreen = ({ navigation }) => {
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Fetch greeting from backend
+    const fetchGreeting = async () => {
+      try {
+        const greeting = await apiService.getUserGreeting();
+        setGreetingData({
+          greeting: greeting.greeting,
+          username: greeting.username,
+        });
+      } catch (error) {
+        console.error("Error fetching greeting:", error);
+        // Fallback to local greeting if backend fails
+        const localGreeting = getGreeting();
+        setGreetingData({
+          greeting: `${localGreeting}, ${userData.name}!`,
+          username: userData.name,
+        });
+      }
+    };
+
+    fetchGreeting();
   }, []);
 
   const handleTrackMeal = () => {
@@ -81,8 +109,7 @@ const MainScreen = ({ navigation }) => {
 
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.greeting}>{getGreeting()},</Text>
-          <Text style={styles.userName}>{userData.name}!</Text>
+          <Text style={styles.greeting}>{greetingData.greeting}</Text>
           <Text style={styles.welcomeSubtext}>
             Ready to crush your fitness goals today?
           </Text>
