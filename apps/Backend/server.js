@@ -14,8 +14,10 @@ app.use(
   cors({
     origin: [
       "http://localhost:19006",
-      "http://localhost:3000",
       "http://localhost:8081",
+      "http://localhost:5000",
+      "http://192.168.1.230:5000",
+      "http://192.168.1.230:19006",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -33,7 +35,7 @@ try {
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),
     // Replace with your Firebase project ID
-    databaseURL: `https://your-project-id.firebaseio.com`,
+    databaseURL: `https://smartfit-5025d.firebaseio.com`,
   });
   console.log("Firebase Admin initialized successfully");
 } catch (error) {

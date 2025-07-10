@@ -16,7 +16,19 @@ export const authService = {
         email,
         password
       );
-      return userCredential.user;
+      const user = userCredential.user;
+
+      // Update lastLogin timestamp in Firestore
+      try {
+        await updateDoc(doc(db, "users", user.uid), {
+          lastLogin: new Date(),
+        });
+      } catch (firestoreError) {
+        console.error("Error updating lastLogin:", firestoreError);
+        // Don't throw the error - the sign in was successful
+      }
+
+      return user;
     } catch (error) {
       throw error;
     }
@@ -44,24 +56,12 @@ export const authService = {
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           email: user.email,
+          displayName: null, // Will be set during profile setup
+          username: null, // Will be set during profile setup
           createdAt: new Date(),
           lastLogin: new Date(),
           profileSetupCompleted: false, // Flag to show profile setup on first login
-          profile: {
-            fitnessLevel: "beginner",
-            goals: [],
-            preferences: {
-              units: "metric",
-              notifications: true,
-              privacy: "private",
-            },
-          },
-          stats: {
-            totalWorkouts: 0,
-            totalCaloriesBurned: 0,
-            currentStreak: 0,
-            longestStreak: 0,
-          },
+          updatedAt: new Date(),
         });
         console.log("User profile created successfully in Firestore");
       } catch (firestoreError) {

@@ -9,16 +9,15 @@ const getApiBaseUrl = () => {
     // ⚠️ FOR PHYSICAL DEVICE TESTING: Uncomment the line below and replace with your computer's IP
     // return "http://172.23.32.1:5000/api";
 
-    // For web browser, always use localhost
-    if (typeof window !== "undefined") {
-      return "http://localhost:5000/api";
-    }
-
     if (Platform.OS === "android") {
       // For Android emulator, use 10.0.2.2
       return "http://10.0.2.2:5000/api";
+    } else if (Platform.OS === "ios") {
+      // For iOS simulator, use the computer's IP address
+      // Try the main network IP first, then fallback to localhost
+      return "http://192.168.1.230:5000/api";
     } else {
-      // For iOS simulator, localhost works
+      // Fallback for other platforms
       return "http://localhost:5000/api";
     }
   } else {
@@ -30,7 +29,6 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 console.log("Platform detected:", Platform.OS);
 console.log("API_BASE_URL:", API_BASE_URL);
-console.log("Is web environment:", typeof window !== "undefined");
 
 export const apiService = {
   // Get auth token for API requests

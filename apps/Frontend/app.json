@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "platforms": ["ios", "android", "web"],
+    "platforms": ["ios", "android"],
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#f8fafc"
@@ -18,9 +18,6 @@
       "adaptiveIcon": {
         "backgroundColor": "#f8fafc"
       }
-    },
-    "web": {
-      "bundler": "metro"
     },
     "sdkVersion": "53.0.0"
   }
