@@ -1,44 +1,54 @@
-﻿import { db } from './firebase';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy,
-  doc,
-  updateDoc,
-  deleteDoc
-} from 'firebase/firestore';
+﻿import apiService from "./apiService";
 
 export const mealService = {
   // Add new meal
-  addMeal: async (userId, mealData) => {
+  addMeal: async (mealData) => {
     try {
-      const docRef = await addDoc(collection(db, 'meals'), {
-        userId: userId,
-        ...mealData,
-        createdAt: new Date()
-      });
-      return docRef.id;
+      const response = await apiService.post("/meals", mealData);
+      return response.meal.id;
     } catch (error) {
       throw error;
     }
   },
 
   // Get user's meals
-  getUserMeals: async (userId) => {
+  getUserMeals: async () => {
     try {
-      const q = query(
-        collection(db, 'meals'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const response = await apiService.get("/meals");
+      return response.meals.map((meal) => ({
+        id: meal.id,
+        name: meal.name,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat,
+        mealType: meal.meal_type,
+        notes: meal.notes,
+        createdAt: meal.created_at,
+        updatedAt: meal.updated_at,
       }));
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get specific meal
+  getMeal: async (mealId) => {
+    try {
+      const response = await apiService.get(`/meals/${mealId}`);
+      const meal = response.meal;
+      return {
+        id: meal.id,
+        name: meal.name,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat,
+        mealType: meal.meal_type,
+        notes: meal.notes,
+        createdAt: meal.created_at,
+        updatedAt: meal.updated_at,
+      };
     } catch (error) {
       throw error;
     }
@@ -47,7 +57,20 @@ export const mealService = {
   // Update meal
   updateMeal: async (mealId, updates) => {
     try {
-      await updateDoc(doc(db, 'meals', mealId), updates);
+      const response = await apiService.put(`/meals/${mealId}`, updates);
+      const meal = response.meal;
+      return {
+        id: meal.id,
+        name: meal.name,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat,
+        mealType: meal.meal_type,
+        notes: meal.notes,
+        createdAt: meal.created_at,
+        updatedAt: meal.updated_at,
+      };
     } catch (error) {
       throw error;
     }
@@ -56,9 +79,9 @@ export const mealService = {
   // Delete meal
   deleteMeal: async (mealId) => {
     try {
-      await deleteDoc(doc(db, 'meals', mealId));
+      await apiService.delete(`/meals/${mealId}`);
     } catch (error) {
       throw error;
     }
-  }
+  },
 };

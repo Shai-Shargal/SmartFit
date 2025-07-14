@@ -1,44 +1,52 @@
-﻿import { db } from './firebase';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy,
-  doc,
-  updateDoc,
-  deleteDoc
-} from 'firebase/firestore';
+﻿import apiService from "./apiService";
 
 export const workoutService = {
   // Add new workout
-  addWorkout: async (userId, workoutData) => {
+  addWorkout: async (workoutData) => {
     try {
-      const docRef = await addDoc(collection(db, 'workouts'), {
-        userId: userId,
-        ...workoutData,
-        createdAt: new Date()
-      });
-      return docRef.id;
+      const response = await apiService.post("/workouts", workoutData);
+      return response.workout.id;
     } catch (error) {
       throw error;
     }
   },
 
   // Get user's workouts
-  getUserWorkouts: async (userId) => {
+  getUserWorkouts: async () => {
     try {
-      const q = query(
-        collection(db, 'workouts'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const response = await apiService.get("/workouts");
+      return response.workouts.map((workout) => ({
+        id: workout.id,
+        name: workout.name,
+        duration: workout.duration,
+        caloriesBurned: workout.calories_burned,
+        workoutType: workout.workout_type,
+        exercises: workout.exercises,
+        notes: workout.notes,
+        createdAt: workout.created_at,
+        updatedAt: workout.updated_at,
       }));
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get specific workout
+  getWorkout: async (workoutId) => {
+    try {
+      const response = await apiService.get(`/workouts/${workoutId}`);
+      const workout = response.workout;
+      return {
+        id: workout.id,
+        name: workout.name,
+        duration: workout.duration,
+        caloriesBurned: workout.calories_burned,
+        workoutType: workout.workout_type,
+        exercises: workout.exercises,
+        notes: workout.notes,
+        createdAt: workout.created_at,
+        updatedAt: workout.updated_at,
+      };
     } catch (error) {
       throw error;
     }
@@ -47,7 +55,19 @@ export const workoutService = {
   // Update workout
   updateWorkout: async (workoutId, updates) => {
     try {
-      await updateDoc(doc(db, 'workouts', workoutId), updates);
+      const response = await apiService.put(`/workouts/${workoutId}`, updates);
+      const workout = response.workout;
+      return {
+        id: workout.id,
+        name: workout.name,
+        duration: workout.duration,
+        caloriesBurned: workout.calories_burned,
+        workoutType: workout.workout_type,
+        exercises: workout.exercises,
+        notes: workout.notes,
+        createdAt: workout.created_at,
+        updatedAt: workout.updated_at,
+      };
     } catch (error) {
       throw error;
     }
@@ -56,9 +76,9 @@ export const workoutService = {
   // Delete workout
   deleteWorkout: async (workoutId) => {
     try {
-      await deleteDoc(doc(db, 'workouts', workoutId));
+      await apiService.delete(`/workouts/${workoutId}`);
     } catch (error) {
       throw error;
     }
-  }
+  },
 };

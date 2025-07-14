@@ -1,34 +1,18 @@
-import { auth, db } from "./firebase";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import apiService from "./apiService";
 
 export const authService = {
   // Sign in with email and password
   signIn: async (email, password) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
+      const response = await apiService.post("/auth/login", {
         email,
-        password
-      );
-      const user = userCredential.user;
+        password,
+      });
 
-      // Update lastLogin timestamp in Firestore
-      try {
-        await updateDoc(doc(db, "users", user.uid), {
-          lastLogin: new Date(),
-        });
-      } catch (firestoreError) {
-        console.error("Error updating lastLogin:", firestoreError);
-        // Don't throw the error - the sign in was successful
-      }
+      // Store the token
+      await apiService.setToken(response.token);
 
-      return user;
+      return response.user;
     } catch (error) {
       throw error;
     }
@@ -37,40 +21,15 @@ export const authService = {
   // Register new user
   register: async (email, password) => {
     try {
-      console.log("Starting registration for:", email);
-      console.log("Auth object:", auth);
-
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const response = await apiService.post("/auth/register", {
         email,
-        password
-      );
-      console.log("User credential created:", userCredential);
-      const user = userCredential.user;
-      console.log("User object:", user);
-      console.log("User UID:", user.uid);
+        password,
+      });
 
-      // Create basic user profile (without displayName)
-      console.log("Attempting to create user profile in Firestore...");
-      try {
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          email: user.email,
-          displayName: null, // Will be set during profile setup
-          username: null, // Will be set during profile setup
-          createdAt: new Date(),
-          lastLogin: new Date(),
-          profileSetupCompleted: false, // Flag to show profile setup on first login
-          updatedAt: new Date(),
-        });
-        console.log("User profile created successfully in Firestore");
-      } catch (firestoreError) {
-        console.error("Firestore error:", firestoreError);
-        // Don't throw the error - the user was created successfully
-        // Just log it for debugging
-      }
+      // Store the token
+      await apiService.setToken(response.token);
 
-      return user;
+      return response.user;
     } catch (error) {
       throw error;
     }
@@ -79,39 +38,79 @@ export const authService = {
   // Sign out
   signOut: async () => {
     try {
-      await signOut(auth);
+      // Remove the token
+      await apiService.removeToken();
     } catch (error) {
       throw error;
     }
   },
 
-  // Get current user
-  getCurrentUser: () => {
-    return auth.currentUser;
-  },
-
-  // Listen to auth state changes
-  onAuthStateChanged: (callback) => {
-    return onAuthStateChanged(auth, callback);
-  },
-
-  // Get user profile from Firestore
-  getUserProfile: async (uid) => {
-    try {
-      const userDoc = await getDoc(doc(db, "users", uid));
-      if (userDoc.exists()) {
-        return userDoc.data();
-      }
+  // Get current user from stored token
+  getCurrentUser: async () => {
+    const token = await apiService.getToken();
+    if (!token) {
       return null;
+    }
+
+    // For now, we'll return a basic user object
+    // In a real app, you might want to decode the JWT token or make an API call
+    return { token };
+  },
+
+  // Check if user is authenticated
+  isAuthenticated: async () => {
+    const token = await apiService.getToken();
+    return !!token;
+  },
+
+  // Get user profile from API
+  getUserProfile: async () => {
+    try {
+      const response = await apiService.get("/user/profile");
+      return response;
     } catch (error) {
       throw error;
     }
   },
 
   // Update user profile
-  updateUserProfile: async (uid, updates) => {
+  updateUserProfile: async (updates) => {
     try {
-      await updateDoc(doc(db, "users", uid), updates);
+      const response = await apiService.put("/user/profile", updates);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get user greeting
+  getUserGreeting: async () => {
+    try {
+      const response = await apiService.get("/user/greeting");
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get profile setup status
+  getProfileSetupStatus: async () => {
+    try {
+      const response = await apiService.get("/user/profile-setup-status");
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Setup user profile
+  setupProfile: async (profileData) => {
+    try {
+      const response = await apiService.post(
+        "/user/setup-profile",
+        profileData
+      );
+      return response;
     } catch (error) {
       throw error;
     }

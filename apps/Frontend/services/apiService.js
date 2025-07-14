@@ -1,24 +1,30 @@
-import { auth } from "./firebase";
 import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Configure API URL based on platform
 const getApiBaseUrl = () => {
   if (__DEV__) {
     // Development mode
-
-    // ⚠️ FOR PHYSICAL DEVICE TESTING: Uncomment the line below and replace with your computer's IP
-    // return "http://172.23.32.1:5000/api";
+    console.log("Platform:", Platform.OS);
 
     if (Platform.OS === "android") {
       // For Android emulator, use 10.0.2.2
-      return "http://10.0.2.2:5000/api";
+      const url = "http://10.0.2.2:5000/api";
+      console.log("Using Android API URL:", url);
+      return url;
     } else if (Platform.OS === "ios") {
-      // For iOS simulator, use the computer's IP address
-      // Try the main network IP first, then fallback to localhost
-      return "http://192.168.1.230:5000/api";
+      // For iOS simulator, try localhost first, then fallback to IP
+      // You can uncomment and modify the IP below for physical device testing
+      // return "http://YOUR_COMPUTER_IP:5000/api";
+
+      const url = "http://localhost:5000/api";
+      console.log("Using iOS API URL:", url);
+      return url;
     } else {
       // Fallback for other platforms
-      return "http://localhost:5000/api";
+      const url = "http://localhost:5000/api";
+      console.log("Using fallback API URL:", url);
+      return url;
     }
   } else {
     // Production mode - replace with your actual server URL
@@ -27,86 +33,102 @@ const getApiBaseUrl = () => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
-console.log("Platform detected:", Platform.OS);
-console.log("API_BASE_URL:", API_BASE_URL);
+console.log("Final API Base URL:", API_BASE_URL);
 
-export const apiService = {
-  // Get auth token for API requests
-  getAuthToken: async () => {
-    const user = auth.currentUser;
-    if (user) {
-      return await user.getIdToken();
+class ApiService {
+  constructor() {
+    this.baseURL = API_BASE_URL;
+  }
+
+  // Get stored token (using AsyncStorage for React Native)
+  async getToken() {
+    try {
+      return await AsyncStorage.getItem("authToken");
+    } catch (error) {
+      console.error("Error getting token:", error);
+      return null;
     }
-    return null;
-  },
+  }
 
-  // Make authenticated API request
-  makeAuthenticatedRequest: async (url, options = {}) => {
-    const token = await apiService.getAuthToken();
-    if (!token) {
-      throw new Error("No authentication token available");
+  // Set token (using AsyncStorage for React Native)
+  async setToken(token) {
+    try {
+      await AsyncStorage.setItem("authToken", token);
+    } catch (error) {
+      console.error("Error setting token:", error);
     }
+  }
 
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
+  // Remove token (using AsyncStorage for React Native)
+  async removeToken() {
+    try {
+      await AsyncStorage.removeItem("authToken");
+    } catch (error) {
+      console.error("Error removing token:", error);
+    }
+  }
+
+  // Generic request method
+  async request(endpoint, options = {}) {
+    const token = await this.getToken();
+    const fullUrl = `${this.baseURL}${endpoint}`;
+
+    console.log("Making request to:", fullUrl);
+    console.log("Request options:", options);
+
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
+      },
+      ...options,
     };
 
-    const fullUrl = `${API_BASE_URL}${url}`;
-    console.log("Making API request to:", fullUrl); // Debug log
-
     try {
-      const response = await fetch(fullUrl, {
-        ...options,
-        headers,
-      });
+      const response = await fetch(fullUrl, config);
+      console.log("Response status:", response.status);
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || `HTTP error! status: ${response.status}`
+        );
       }
 
-      return response.json();
+      return await response.json();
     } catch (error) {
-      console.error("Network request failed:", error);
-      console.error("API_BASE_URL:", API_BASE_URL);
-      console.error("Platform:", Platform.OS);
+      console.error("API request failed:", error);
+      console.error("Request URL:", fullUrl);
       throw error;
     }
-  },
+  }
 
-  // Get user greeting
-  getUserGreeting: async () => {
-    try {
-      return await apiService.makeAuthenticatedRequest("/user/greeting");
-    } catch (error) {
-      console.error("Error fetching user greeting:", error);
-      throw error;
-    }
-  },
+  // GET request
+  async get(endpoint) {
+    return this.request(endpoint, { method: "GET" });
+  }
 
-  // Get profile setup status
-  getProfileSetupStatus: async () => {
-    try {
-      return await apiService.makeAuthenticatedRequest(
-        "/user/profile-setup-status"
-      );
-    } catch (error) {
-      console.error("Error fetching profile setup status:", error);
-      throw error;
-    }
-  },
+  // POST request
+  async post(endpoint, data) {
+    return this.request(endpoint, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
 
-  // Setup user profile
-  setupProfile: async (profileData) => {
-    try {
-      return await apiService.makeAuthenticatedRequest("/user/setup-profile", {
-        method: "POST",
-        body: JSON.stringify(profileData),
-      });
-    } catch (error) {
-      console.error("Error setting up profile:", error);
-      throw error;
-    }
-  },
-};
+  // PUT request
+  async put(endpoint, data) {
+    return this.request(endpoint, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  // DELETE request
+  async delete(endpoint) {
+    return this.request(endpoint, { method: "DELETE" });
+  }
+}
+
+export default new ApiService();

@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  email                 String    @unique
+  passwordHash          String    @map("password_hash")
+  displayName           String?   @map("display_name")
+  username              String?
+  age                   Int?
+  weight                Decimal?  @db.Decimal(5, 2)
+  height                Decimal?  @db.Decimal(5, 2)
+  exerciseFrequency     Int?      @map("exercise_frequency")
+  exerciseRoutine       String?   @map("exercise_routine")
+  eatingHabits          String?   @map("eating_habits")
+  profileSetupCompleted Boolean   @default(false) @map("profile_setup_completed")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  lastLogin             DateTime  @default(now()) @map("last_login")
+
+  // Relations
+  meals    Meal[]
+  workouts Workout[]
+
+  @@map("users")
+}
+
+model Meal {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  name      String
+  calories  Int?
+  protein   Decimal? @db.Decimal(5, 2)
+  carbs     Decimal? @db.Decimal(5, 2)
+  fat       Decimal? @db.Decimal(5, 2)
+  mealType  String?  @map("meal_type") // breakfast, lunch, dinner, snack
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("meals")
+}
+
+model Workout {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  name          String
+  duration      Int?     // in minutes
+  caloriesBurned Int?    @map("calories_burned")
+  workoutType   String?  @map("workout_type") // cardio, strength, flexibility, yoga, pilates, hiit, other
+  exercises     String?  // JSON string of exercises
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("workouts")
+} 
