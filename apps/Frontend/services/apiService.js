@@ -13,10 +13,8 @@ const getApiBaseUrl = () => {
       console.log("Using Android API URL:", url);
       return url;
     } else if (Platform.OS === "ios") {
-      // For iOS simulator, try localhost first, then fallback to IP
-      // You can uncomment and modify the IP below for physical device testing
-      // return "http://YOUR_COMPUTER_IP:5000/api";
-
+      // For iOS simulator, use localhost
+      // For physical iOS device, you'll need to use your computer's IP address
       const url = "http://localhost:5000/api";
       console.log("Using iOS API URL:", url);
       return url;
@@ -32,7 +30,11 @@ const getApiBaseUrl = () => {
   }
 };
 
-const API_BASE_URL = getApiBaseUrl();
+// For testing - you can temporarily override the API URL here
+// Uncomment and replace with your computer's IP address if using a physical device
+const API_BASE_URL = "http://192.168.1.230:5000/api";
+
+// const API_BASE_URL = getApiBaseUrl();
 console.log("Final API Base URL:", API_BASE_URL);
 
 class ApiService {
