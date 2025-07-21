@@ -171,4 +171,78 @@ router.get("/profile", verifyToken, async (req, res) => {
   }
 });
 
+// Update user profile
+router.put(
+  "/profile",
+  verifyToken,
+  [
+    body("displayName").optional().notEmpty().trim(),
+    body("age").optional().isInt({ min: 1, max: 120 }),
+    body("weight").optional().isFloat({ min: 20, max: 500 }),
+    body("height").optional().isFloat({ min: 100, max: 250 }),
+    body("exerciseFrequency").optional().isInt({ min: 0, max: 7 }),
+    // exerciseRoutine and eatingHabits are optional strings
+    body("exerciseRoutine")
+      .optional()
+      .custom((v) => v === null || typeof v === "string"),
+    body("eatingHabits")
+      .optional()
+      .custom((v) => v === null || typeof v === "string"),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const userId = req.user.id;
+      const updateFields = {};
+      const allowedFields = [
+        "displayName",
+        "age",
+        "weight",
+        "height",
+        "exerciseFrequency",
+        "exerciseRoutine",
+        "eatingHabits",
+      ];
+      allowedFields.forEach((field) => {
+        if (req.body[field] !== undefined) {
+          updateFields[field] = req.body[field];
+        }
+      });
+      if (Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ error: "No valid fields to update" });
+      }
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: updateFields,
+      });
+      res.json({
+        success: true,
+        message: "Profile updated successfully",
+        profile: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          displayName: updatedUser.displayName,
+          username: updatedUser.username,
+          age: updatedUser.age,
+          weight: updatedUser.weight,
+          height: updatedUser.height,
+          exerciseFrequency: updatedUser.exerciseFrequency,
+          exerciseRoutine: updatedUser.exerciseRoutine,
+          eatingHabits: updatedUser.eatingHabits,
+          profileSetupCompleted: updatedUser.profileSetupCompleted,
+          createdAt: updatedUser.createdAt,
+          updatedAt: updatedUser.updatedAt,
+          lastLogin: updatedUser.lastLogin,
+        },
+      });
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  }
+);
+
 module.exports = router;

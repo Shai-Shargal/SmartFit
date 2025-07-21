@@ -15,10 +15,12 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { apiService } from "../services/apiService";
+import { authService } from "../services/authService";
 
 const { width, height } = Dimensions.get("window");
 
-const ProfileSetupScreen = ({ navigation }) => {
+const ProfileSetupScreen = ({ navigation, route }) => {
+  const isEditMode = route?.params?.edit;
   const [formData, setFormData] = useState({
     displayName: "",
     age: "",
@@ -28,8 +30,31 @@ const ProfileSetupScreen = ({ navigation }) => {
     exerciseRoutine: "",
     eatingHabits: "",
   });
-
   const [isLoading, setIsLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (isEditMode) {
+      (async () => {
+        setIsLoading(true);
+        try {
+          const profile = await authService.getUserProfile();
+          setFormData({
+            displayName: profile.displayName?.toString() || "",
+            age: profile.age?.toString() || "",
+            weight: profile.weight?.toString() || "",
+            height: profile.height?.toString() || "",
+            exerciseFrequency: profile.exerciseFrequency?.toString() || "",
+            exerciseRoutine: profile.exerciseRoutine || "",
+            eatingHabits: profile.eatingHabits || "",
+          });
+        } catch (e) {
+          Alert.alert("Error", "Failed to load profile data");
+        } finally {
+          setIsLoading(false);
+        }
+      })();
+    }
+  }, [isEditMode]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -79,9 +104,7 @@ const ProfileSetupScreen = ({ navigation }) => {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     setIsLoading(true);
-
     try {
       const profileData = {
         displayName: formData.displayName.trim(),
@@ -92,18 +115,27 @@ const ProfileSetupScreen = ({ navigation }) => {
         exerciseRoutine: formData.exerciseRoutine.trim() || null,
         eatingHabits: formData.eatingHabits.trim() || null,
       };
-
-      await apiService.setupProfile(profileData);
-
-      Alert.alert("Success", "Profile setup completed! Welcome to SmartFit!", [
-        {
-          text: "Continue",
-          onPress: () => navigation.replace("Main"),
-        },
-      ]);
+      if (isEditMode) {
+        await authService.updateUserProfile(profileData);
+        Alert.alert("Success", "Profile updated!", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        await apiService.setupProfile(profileData);
+        Alert.alert(
+          "Success",
+          "Profile setup completed! Welcome to SmartFit!",
+          [{ text: "Continue", onPress: () => navigation.replace("Main") }]
+        );
+      }
     } catch (error) {
-      console.error("Profile setup error:", error);
-      Alert.alert("Error", "Failed to setup profile. Please try again.");
+      console.error("Profile error:", error);
+      Alert.alert(
+        "Error",
+        isEditMode
+          ? "Failed to update profile. Please try again."
+          : "Failed to setup profile. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -122,10 +154,18 @@ const ProfileSetupScreen = ({ navigation }) => {
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
-              <Ionicons name="person-add" size={40} color="white" />
-              <Text style={styles.headerTitle}>Complete Your Profile</Text>
+              <Ionicons
+                name={isEditMode ? "person" : "person-add"}
+                size={40}
+                color="white"
+              />
+              <Text style={styles.headerTitle}>
+                {isEditMode ? "Edit Your Profile" : "Complete Your Profile"}
+              </Text>
               <Text style={styles.headerSubtitle}>
-                Help us personalize your fitness experience
+                {isEditMode
+                  ? "Update your personal information"
+                  : "Help us personalize your fitness experience"}
               </Text>
             </View>
 
@@ -299,9 +339,13 @@ const ProfileSetupScreen = ({ navigation }) => {
                   end={{ x: 1, y: 1 }}
                 >
                   {isLoading ? (
-                    <Text style={styles.submitButtonText}>Setting Up...</Text>
+                    <Text style={styles.submitButtonText}>
+                      {isEditMode ? "Saving..." : "Setting Up..."}
+                    </Text>
                   ) : (
-                    <Text style={styles.submitButtonText}>Complete Setup</Text>
+                    <Text style={styles.submitButtonText}>
+                      {isEditMode ? "Save Changes" : "Complete Setup"}
+                    </Text>
                   )}
                 </LinearGradient>
               </TouchableOpacity>

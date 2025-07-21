@@ -112,7 +112,10 @@ const MainScreen = ({ navigation }) => {
             <Text style={styles.appName}>FitPal AI</Text>
             <Text style={styles.timeText}>{currentTime}</Text>
           </View>
-          <TouchableOpacity style={styles.profileButton}>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => navigation.navigate("ProfileSetup", { edit: true })}
+          >
             <Ionicons name="person-circle" size={40} color="#6366f1" />
           </TouchableOpacity>
         </View>
