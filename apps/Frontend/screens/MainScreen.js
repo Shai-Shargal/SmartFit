@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { apiService } from "../services/apiService";
+import { authService } from "../services/authService";
 
 const { width, height } = Dimensions.get("window");
 
@@ -50,32 +51,51 @@ const MainScreen = ({ navigation }) => {
     // Check profile setup status and fetch greeting
     const checkProfileAndFetchGreeting = async () => {
       try {
-        // First check if profile setup is completed
-        const profileStatus = await apiService.getProfileSetupStatus();
-
-        if (!profileStatus.profileSetupCompleted) {
-          // Redirect to profile setup if not completed
+        // Fetch user profile
+        const profile = await authService.getUserProfile();
+        // Check if all required fields are present and valid
+        const requiredFields = [
+          "displayName",
+          "age",
+          "weight",
+          "height",
+          "exerciseFrequency",
+        ];
+        const isProfileComplete = requiredFields.every((field) => {
+          const value = profile[field];
+          if (field === "displayName") return value && value.trim() !== "";
+          if (["age", "exerciseFrequency"].includes(field))
+            return !isNaN(Number(value)) && Number(value) > 0;
+          if (["weight", "height"].includes(field))
+            return !isNaN(Number(value)) && Number(value) > 0;
+          return !!value;
+        });
+        if (!isProfileComplete) {
           navigation.replace("ProfileSetup");
           return;
         }
-
-        // Fetch greeting if profile is set up
-        const greeting = await apiService.getUserGreeting();
+        // Greeting logic
+        let username = "User";
+        if (profile.displayName && profile.displayName.trim() !== "") {
+          username = profile.displayName;
+        } else if (profile.email) {
+          username = profile.email.split("@")[0];
+        }
+        const greeting = getGreeting();
         setGreetingData({
-          greeting: greeting.greeting,
-          username: greeting.username,
+          greeting: `${greeting}, ${username}!`,
+          username,
         });
       } catch (error) {
         console.error("Error checking profile or fetching greeting:", error);
         // Fallback to local greeting if backend fails
         const localGreeting = getGreeting();
         setGreetingData({
-          greeting: `${localGreeting}, ${userData.name}!`,
-          username: userData.name,
+          greeting: `${localGreeting}, User!`,
+          username: "User",
         });
       }
     };
-
     checkProfileAndFetchGreeting();
   }, [navigation]);
 

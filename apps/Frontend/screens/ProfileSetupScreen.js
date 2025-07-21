@@ -121,7 +121,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       } else {
-        await apiService.setupProfile(profileData);
+        await authService.setupProfile(profileData);
         Alert.alert(
           "Success",
           "Profile setup completed! Welcome to SmartFit!",
@@ -154,6 +154,18 @@ const ProfileSetupScreen = ({ navigation, route }) => {
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
+              <TouchableOpacity
+                style={{ position: "absolute", left: 20, top: 40, zIndex: 2 }}
+                onPress={() => {
+                  if (isEditMode) {
+                    navigation.goBack();
+                  } else {
+                    navigation.replace("Main");
+                  }
+                }}
+              >
+                <Ionicons name="arrow-back" size={28} color="white" />
+              </TouchableOpacity>
               <Ionicons
                 name={isEditMode ? "person" : "person-add"}
                 size={40}

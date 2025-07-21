@@ -15,7 +15,6 @@ model User {
   email                 String    @unique
   passwordHash          String    @map("password_hash")
   displayName           String?   @map("display_name")
-  username              String?
   age                   Int?
   weight                Decimal?  @db.Decimal(5, 2)
   height                Decimal?  @db.Decimal(5, 2)
