@@ -17,6 +17,20 @@ import { authService } from "../services/authService";
 
 const { width, height } = Dimensions.get("window");
 
+// Define a color palette for the app
+const COLORS = {
+  primary: "#111111", // Black (main)
+  secondary: "#e11d48", // Red
+  accent: "#fff", // White
+  background: "#111111", // Black background
+  text: "#fff", // White text
+  inputBg: "#222", // Slightly lighter black for inputs
+  border: "#e11d48", // Red border
+  placeholder: "#9ca3af",
+  subtitle: "#e11d48", // Red for subtitles
+  error: "#e11d48",
+};
+
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -75,25 +89,29 @@ const LoginScreen = ({ navigation }) => {
         style={styles.keyboardView}
       >
         <LinearGradient
-          colors={["#6366f1", "#4f46e5", "#3730a3"]}
+          colors={[COLORS.primary, COLORS.secondary]}
           style={styles.backgroundGradient}
         >
           <View style={styles.content}>
             {/* Logo and Title */}
             <View style={styles.header}>
               <View style={styles.logoContainer}>
-                <Ionicons name="fitness" size={60} color="white" />
+                <Ionicons name="fitness" size={60} color={COLORS.secondary} />
               </View>
-              <Text style={styles.appTitle}>FitPal AI</Text>
-              <Text style={styles.appSubtitle}>
+              <Text style={[styles.appTitle, { color: COLORS.accent }]}>
+                FitPal AI
+              </Text>
+              <Text style={[styles.appSubtitle, { color: COLORS.accent }]}>
                 Your Personal Fitness Companion
               </Text>
             </View>
 
             {/* Login Form */}
             <View style={styles.formContainer}>
-              <Text style={styles.formTitle}>Welcome Back</Text>
-              <Text style={styles.formSubtitle}>
+              <Text style={[styles.formTitle, { color: COLORS.accent }]}>
+                Welcome Back
+              </Text>
+              <Text style={[styles.formSubtitle, { color: COLORS.accent }]}>
                 Sign in to continue your fitness journey
               </Text>
 
@@ -102,13 +120,13 @@ const LoginScreen = ({ navigation }) => {
                 <Ionicons
                   name="mail"
                   size={20}
-                  color="#6366f1"
+                  color={COLORS.secondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={styles.textInput}
                   placeholder="Email"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={COLORS.placeholder}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -122,13 +140,13 @@ const LoginScreen = ({ navigation }) => {
                 <Ionicons
                   name="lock-closed"
                   size={20}
-                  color="#6366f1"
+                  color={COLORS.secondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={[styles.textInput, styles.passwordInput]}
                   placeholder="Password"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={COLORS.placeholder}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -142,28 +160,32 @@ const LoginScreen = ({ navigation }) => {
                   <Ionicons
                     name={showPassword ? "eye-off" : "eye"}
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                   />
                 </TouchableOpacity>
               </View>
 
               {/* Forgot Password */}
               <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                <Text
+                  style={[
+                    styles.forgotPasswordText,
+                    { color: COLORS.secondary },
+                  ]}
+                >
+                  Forgot Password?
+                </Text>
               </TouchableOpacity>
 
               {/* Login Button */}
               <TouchableOpacity
-                style={[
-                  styles.loginButton,
-                  isLoading && styles.loginButtonDisabled,
-                ]}
+                style={styles.loginButton}
                 onPress={handleLogin}
                 disabled={isLoading}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={["#10b981", "#059669"]}
+                  colors={[COLORS.secondary, COLORS.primary]}
                   style={styles.loginGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -189,7 +211,12 @@ const LoginScreen = ({ navigation }) => {
                 onPress={handleRegister}
                 activeOpacity={0.8}
               >
-                <Text style={styles.registerButtonText}>
+                <Text
+                  style={[
+                    styles.registerButtonText,
+                    { color: COLORS.secondary },
+                  ]}
+                >
                   Create New Account
                 </Text>
               </TouchableOpacity>
@@ -200,6 +227,14 @@ const LoginScreen = ({ navigation }) => {
               <Text style={styles.footerText}>
                 By signing in, you agree to our Terms of Service and Privacy
                 Policy
+              </Text>
+              <Text
+                style={[
+                  styles.footerText,
+                  { marginTop: 8, fontWeight: "bold", color: "#fff" },
+                ]}
+              >
+                Created by Shai Shargal
               </Text>
             </View>
           </View>
@@ -212,7 +247,7 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLORS.background,
   },
   keyboardView: {
     flex: 1,
@@ -222,18 +257,18 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
     justifyContent: "center",
+    paddingHorizontal: 24,
   },
   header: {
     alignItems: "center",
-    marginBottom: 60,
+    marginBottom: 40,
   },
   logoContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: COLORS.secondary + "22",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
@@ -241,19 +276,17 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "white",
     marginBottom: 8,
   },
   appSubtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
     textAlign: "center",
   },
   formContainer: {
-    backgroundColor: "white",
+    backgroundColor: COLORS.primary,
     borderRadius: 20,
     padding: 32,
-    shadowColor: "#000",
+    shadowColor: COLORS.secondary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -265,25 +298,23 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1f2937",
     marginBottom: 8,
     textAlign: "center",
   },
   formSubtitle: {
     fontSize: 14,
-    color: "#6b7280",
     marginBottom: 32,
     textAlign: "center",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9fafb",
+    backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: COLORS.border,
   },
   inputIcon: {
     marginRight: 12,
@@ -292,7 +323,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: "#1f2937",
+    color: COLORS.accent,
   },
   passwordInput: {
     paddingRight: 50,
@@ -308,7 +339,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: "#6366f1",
+    color: COLORS.secondary,
     fontWeight: "500",
   },
   loginButton: {
@@ -326,7 +357,7 @@ const styles = StyleSheet.create({
   loginButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "white",
+    color: COLORS.accent,
   },
   divider: {
     flexDirection: "row",
@@ -336,17 +367,17 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: COLORS.border,
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 14,
-    color: "#6b7280",
+    color: COLORS.secondary,
     fontWeight: "500",
   },
   registerButton: {
     borderWidth: 2,
-    borderColor: "#6366f1",
+    borderColor: COLORS.secondary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
@@ -354,7 +385,7 @@ const styles = StyleSheet.create({
   registerButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#6366f1",
+    color: COLORS.secondary,
   },
   footer: {
     marginTop: 40,
@@ -362,7 +393,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.7)",
+    color: COLORS.accent,
     textAlign: "center",
     lineHeight: 18,
   },
