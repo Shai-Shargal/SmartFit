@@ -9,6 +9,7 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const mealRoutes = require("./routes/meals");
 const workoutRoutes = require("./routes/workouts");
+const fitnessRoutes = require("./routes/fitness");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +52,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/meals", mealRoutes);
 app.use("/api/workouts", workoutRoutes);
+app.use("/api/fitness", fitnessRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

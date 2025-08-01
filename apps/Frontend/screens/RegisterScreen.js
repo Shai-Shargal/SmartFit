@@ -18,6 +18,20 @@ import { authService } from "../services/authService";
 
 const { width, height } = Dimensions.get("window");
 
+// Define a color palette for the app
+const COLORS = {
+  primary: "#111111", // Black (main)
+  secondary: "#e11d48", // Red
+  accent: "#fff", // White
+  background: "#111111", // Black background
+  text: "#fff", // White text
+  inputBg: "#222", // Slightly lighter black for inputs
+  border: "#e11d48", // Red border
+  placeholder: "#9ca3af",
+  subtitle: "#e11d48", // Red for subtitles
+  error: "#e11d48",
+};
+
 const RegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -105,7 +119,7 @@ const RegisterScreen = ({ navigation }) => {
         style={styles.keyboardView}
       >
         <LinearGradient
-          colors={["#6366f1", "#4f46e5", "#3730a3"]}
+          colors={[COLORS.primary, COLORS.secondary]}
           style={styles.backgroundGradient}
         >
           <ScrollView
@@ -118,25 +132,29 @@ const RegisterScreen = ({ navigation }) => {
                 style={styles.backButton}
                 onPress={handleBackToLogin}
               >
-                <Ionicons name="arrow-back" size={24} color="white" />
+                <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
               </TouchableOpacity>
             </View>
 
             {/* Logo and Title */}
             <View style={styles.logoSection}>
               <View style={styles.logoContainer}>
-                <Ionicons name="fitness" size={60} color="white" />
+                <Ionicons name="fitness" size={60} color={COLORS.secondary} />
               </View>
-              <Text style={styles.appTitle}>FitPal AI</Text>
-              <Text style={styles.appSubtitle}>
+              <Text style={[styles.appTitle, { color: COLORS.accent }]}>
+                FitPal AI
+              </Text>
+              <Text style={[styles.appSubtitle, { color: COLORS.accent }]}>
                 Join the fitness revolution
               </Text>
             </View>
 
             {/* Registration Form */}
             <View style={styles.formContainer}>
-              <Text style={styles.formTitle}>Create Account</Text>
-              <Text style={styles.formSubtitle}>
+              <Text style={[styles.formTitle, { color: COLORS.accent }]}>
+                Create Account
+              </Text>
+              <Text style={[styles.formSubtitle, { color: COLORS.accent }]}>
                 Start your fitness journey today
               </Text>
 
@@ -145,13 +163,13 @@ const RegisterScreen = ({ navigation }) => {
                 <Ionicons
                   name="mail"
                   size={20}
-                  color="#6366f1"
+                  color={COLORS.secondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={styles.textInput}
                   placeholder="Email"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={COLORS.placeholder}
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -165,13 +183,13 @@ const RegisterScreen = ({ navigation }) => {
                 <Ionicons
                   name="lock-closed"
                   size={20}
-                  color="#6366f1"
+                  color={COLORS.secondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={[styles.textInput, styles.passwordInput]}
                   placeholder="Password"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={COLORS.placeholder}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -185,7 +203,7 @@ const RegisterScreen = ({ navigation }) => {
                   <Ionicons
                     name={showPassword ? "eye-off" : "eye"}
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                   />
                 </TouchableOpacity>
               </View>
@@ -195,13 +213,13 @@ const RegisterScreen = ({ navigation }) => {
                 <Ionicons
                   name="lock-closed"
                   size={20}
-                  color="#6366f1"
+                  color={COLORS.secondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={[styles.textInput, styles.passwordInput]}
                   placeholder="Confirm Password"
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={COLORS.placeholder}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
@@ -215,17 +233,22 @@ const RegisterScreen = ({ navigation }) => {
                   <Ionicons
                     name={showConfirmPassword ? "eye-off" : "eye"}
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                   />
                 </TouchableOpacity>
               </View>
 
               {/* Terms and Conditions */}
               <View style={styles.termsContainer}>
-                <Text style={styles.termsText}>
+                <Text style={[styles.termsText, { color: COLORS.accent }]}>
                   By creating an account, you agree to our{" "}
-                  <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
-                  <Text style={styles.termsLink}>Privacy Policy</Text>
+                  <Text style={[styles.termsLink, { color: COLORS.secondary }]}>
+                    Terms of Service
+                  </Text>{" "}
+                  and{" "}
+                  <Text style={[styles.termsLink, { color: COLORS.secondary }]}>
+                    Privacy Policy
+                  </Text>
                 </Text>
               </View>
 
@@ -240,7 +263,7 @@ const RegisterScreen = ({ navigation }) => {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={["#10b981", "#059669"]}
+                  colors={[COLORS.secondary, COLORS.primary]}
                   style={styles.registerGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -259,18 +282,20 @@ const RegisterScreen = ({ navigation }) => {
 
               {/* Login Link */}
               <View style={styles.loginLinkContainer}>
-                <Text style={styles.loginLinkText}>
+                <Text style={[styles.loginLinkText, { color: COLORS.accent }]}>
                   Already have an account?{" "}
                 </Text>
                 <TouchableOpacity onPress={handleBackToLogin}>
-                  <Text style={styles.loginLink}>Sign In</Text>
+                  <Text style={[styles.loginLink, { color: COLORS.secondary }]}>
+                    Sign In
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Footer */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>
+              <Text style={[styles.footerText, { color: COLORS.accent }]}>
                 Join thousands of users achieving their fitness goals
               </Text>
             </View>
@@ -284,7 +309,7 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLORS.background,
   },
   keyboardView: {
     flex: 1,
@@ -314,7 +339,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: COLORS.secondary + "22",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
@@ -322,19 +347,17 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "white",
     marginBottom: 8,
   },
   appSubtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
     textAlign: "center",
   },
   formContainer: {
-    backgroundColor: "white",
+    backgroundColor: COLORS.primary,
     borderRadius: 20,
     padding: 32,
-    shadowColor: "#000",
+    shadowColor: COLORS.secondary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -346,25 +369,23 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1f2937",
     marginBottom: 8,
     textAlign: "center",
   },
   formSubtitle: {
     fontSize: 14,
-    color: "#6b7280",
     marginBottom: 32,
     textAlign: "center",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9fafb",
+    backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: COLORS.border,
   },
   inputIcon: {
     marginRight: 12,
@@ -373,7 +394,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    color: "#1f2937",
+    color: COLORS.accent,
   },
   passwordInput: {
     paddingRight: 50,
@@ -388,12 +409,10 @@ const styles = StyleSheet.create({
   },
   termsText: {
     fontSize: 12,
-    color: "#6b7280",
     lineHeight: 18,
     textAlign: "center",
   },
   termsLink: {
-    color: "#6366f1",
     fontWeight: "500",
   },
   registerButton: {
@@ -411,7 +430,7 @@ const styles = StyleSheet.create({
   registerButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "white",
+    color: COLORS.accent,
   },
   loginLinkContainer: {
     flexDirection: "row",
@@ -420,11 +439,9 @@ const styles = StyleSheet.create({
   },
   loginLinkText: {
     fontSize: 14,
-    color: "#6b7280",
   },
   loginLink: {
     fontSize: 14,
-    color: "#6366f1",
     fontWeight: "bold",
   },
   footer: {
@@ -433,7 +450,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.7)",
     textAlign: "center",
     lineHeight: 18,
   },

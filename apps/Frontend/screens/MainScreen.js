@@ -7,13 +7,32 @@ import {
   ScrollView,
   SafeAreaView,
   Dimensions,
+  RefreshControl,
+  Alert,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { apiService } from "../services/apiService";
 import { authService } from "../services/authService";
+import { fitnessService } from "../services/fitnessService";
+import { healthKitService } from "../services/healthKitService";
 
 const { width, height } = Dimensions.get("window");
+
+// Define a color palette for the app
+const COLORS = {
+  primary: "#111111", // Black (main)
+  secondary: "#e11d48", // Red
+  accent: "#fff", // White
+  background: "#111111", // Black background
+  text: "#fff", // White text
+  inputBg: "#222", // Slightly lighter black for inputs
+  border: "#e11d48", // Red border
+  placeholder: "#9ca3af",
+  subtitle: "#e11d48", // Red for subtitles
+  error: "#e11d48",
+};
 
 const MainScreen = ({ navigation }) => {
   const [userData, setUserData] = useState({
@@ -24,11 +43,25 @@ const MainScreen = ({ navigation }) => {
     caloriesGoal: 2000,
   });
 
+  const [fitnessData, setFitnessData] = useState({
+    steps: 0,
+    caloriesBurned: 0,
+    activeMinutes: 0,
+    distance: 0,
+    floorsClimbed: 0,
+    heartRate: 0,
+    sleepHours: 0,
+  });
+
   const [currentTime, setCurrentTime] = useState("");
   const [greetingData, setGreetingData] = useState({
     greeting: "Good morning",
     username: "User",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [syncingHealthKit, setSyncingHealthKit] = useState(false);
+  const [healthKitAvailable, setHealthKitAvailable] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -45,6 +78,11 @@ const MainScreen = ({ navigation }) => {
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Check if HealthKit is available
+    setHealthKitAvailable(healthKitService.isHealthKitAvailable());
   }, []);
 
   useEffect(() => {
@@ -99,6 +137,78 @@ const MainScreen = ({ navigation }) => {
     checkProfileAndFetchGreeting();
   }, [navigation]);
 
+  useEffect(() => {
+    fetchFitnessData();
+  }, []);
+
+  const fetchFitnessData = async () => {
+    try {
+      setIsLoading(true);
+      const profile = await authService.getUserProfile();
+      if (profile && profile.id) {
+        const data = await fitnessService.getTodayFitnessData(profile.id);
+        setFitnessData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching fitness data:", error);
+      // Keep default values if fetch fails
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchFitnessData();
+    setRefreshing(false);
+  };
+
+  const handleSyncHealthKit = async () => {
+    if (!healthKitAvailable) {
+      Alert.alert(
+        "HealthKit Not Available",
+        "HealthKit is only available on iOS devices.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      setSyncingHealthKit(true);
+
+      // Request permissions first
+      await healthKitService.requestPermissions();
+
+      // Get user profile
+      const profile = await authService.getUserProfile();
+      if (!profile || !profile.id) {
+        throw new Error("User profile not found");
+      }
+
+      // Sync HealthKit data with backend
+      const updatedData = await healthKitService.syncHealthKitData(profile.id);
+
+      // Update local state
+      setFitnessData(updatedData);
+
+      Alert.alert(
+        "Sync Successful",
+        "Your fitness data has been synced from HealthKit!",
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.error("Error syncing HealthKit data:", error);
+      Alert.alert(
+        "Sync Failed",
+        error.message ||
+          "Failed to sync data from HealthKit. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setSyncingHealthKit(false);
+    }
+  };
+
   const handleTrackMeal = () => {
     navigation.navigate("MealTracking");
   };
@@ -118,85 +228,220 @@ const MainScreen = ({ navigation }) => {
     return "Good Evening";
   };
 
-  const workoutProgressPercentage =
-    (userData.workoutProgress / userData.workoutGoal) * 100;
-  const calorieProgressPercentage =
-    (userData.caloriesConsumed / userData.caloriesGoal) * 100;
+  const getDefaultGoals = () => {
+    return {
+      steps: 10000,
+      caloriesBurned: 500,
+      activeMinutes: 30,
+      distance: 5,
+      floorsClimbed: 10,
+      sleepHours: 8,
+    };
+  };
+
+  const goals = getDefaultGoals();
+  const stepsProgressPercentage = fitnessService.calculateProgressPercentage(
+    fitnessData.steps,
+    goals.steps
+  );
+  const caloriesProgressPercentage = fitnessService.calculateProgressPercentage(
+    fitnessData.caloriesBurned,
+    goals.caloriesBurned
+  );
+  const activeMinutesProgressPercentage =
+    fitnessService.calculateProgressPercentage(
+      fitnessData.activeMinutes,
+      goals.activeMinutes
+    );
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.secondary}
+            colors={[COLORS.secondary]}
+          />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.appName}>FitPal AI</Text>
-            <Text style={styles.timeText}>{currentTime}</Text>
+            <Text style={[styles.appName, { color: COLORS.accent }]}>
+              FitPal AI
+            </Text>
+            <Text style={[styles.timeText, { color: COLORS.accent }]}>
+              {currentTime}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => navigation.navigate("ProfileSetup", { edit: true })}
           >
-            <Ionicons name="person-circle" size={40} color="#6366f1" />
+            <Ionicons name="person-circle" size={40} color={COLORS.secondary} />
           </TouchableOpacity>
         </View>
 
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.greeting}>{greetingData.greeting}</Text>
-          <Text style={styles.welcomeSubtext}>
+          <Text style={[styles.greeting, { color: COLORS.accent }]}>
+            {greetingData.greeting}
+          </Text>
+          <Text style={[styles.welcomeSubtext, { color: COLORS.accent }]}>
             Ready to crush your fitness goals today?
           </Text>
         </View>
 
+        {/* HealthKit Sync Button (iOS only) */}
+        {healthKitAvailable && (
+          <View style={styles.syncContainer}>
+            <TouchableOpacity
+              style={[
+                styles.syncButton,
+                syncingHealthKit && styles.syncButtonDisabled,
+              ]}
+              onPress={handleSyncHealthKit}
+              disabled={syncingHealthKit}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[COLORS.secondary, COLORS.primary]}
+                style={styles.syncGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons
+                  name={syncingHealthKit ? "sync" : "refresh"}
+                  size={20}
+                  color={COLORS.accent}
+                  style={syncingHealthKit && styles.rotatingIcon}
+                />
+                <Text style={styles.syncButtonText}>
+                  {syncingHealthKit ? "Syncing..." : "Sync HealthKit Data"}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Progress Summary */}
         <View style={styles.progressContainer}>
-          <Text style={styles.sectionTitle}>Today's Progress</Text>
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>
+            Today's Progress
+          </Text>
 
-          {/* Workout Progress */}
+          {/* Steps Progress */}
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
-              <Ionicons name="fitness" size={24} color="#6366f1" />
-              <Text style={styles.progressTitle}>Workout</Text>
+              <Ionicons name="footsteps" size={24} color={COLORS.secondary} />
+              <Text style={[styles.progressTitle, { color: COLORS.accent }]}>
+                Steps
+              </Text>
             </View>
             <View style={styles.progressBar}>
               <View
                 style={[
                   styles.progressFill,
-                  { width: `${Math.min(workoutProgressPercentage, 100)}%` },
+                  { width: `${Math.min(stepsProgressPercentage, 100)}%` },
                 ]}
               />
             </View>
-            <Text style={styles.progressText}>
-              {userData.workoutProgress}/{userData.workoutGoal} minutes
+            <Text style={[styles.progressText, { color: COLORS.accent }]}>
+              {fitnessData.steps.toLocaleString()}/
+              {goals.steps.toLocaleString()} steps
             </Text>
           </View>
 
-          {/* Calorie Progress */}
+          {/* Calories Burned Progress */}
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
-              <Ionicons name="restaurant" size={24} color="#10b981" />
-              <Text style={styles.progressTitle}>Calories</Text>
+              <Ionicons name="flame" size={24} color={COLORS.secondary} />
+              <Text style={[styles.progressTitle, { color: COLORS.accent }]}>
+                Calories Burned
+              </Text>
             </View>
             <View style={styles.progressBar}>
               <View
                 style={[
                   styles.progressFill,
                   {
-                    width: `${Math.min(calorieProgressPercentage, 100)}%`,
-                    backgroundColor: "#10b981",
+                    width: `${Math.min(caloriesProgressPercentage, 100)}%`,
+                    backgroundColor: COLORS.secondary,
                   },
                 ]}
               />
             </View>
-            <Text style={styles.progressText}>
-              {userData.caloriesConsumed}/{userData.caloriesGoal} kcal
+            <Text style={[styles.progressText, { color: COLORS.accent }]}>
+              {fitnessData.caloriesBurned}/{goals.caloriesBurned} kcal
             </Text>
+          </View>
+
+          {/* Active Minutes Progress */}
+          <View style={styles.progressCard}>
+            <View style={styles.progressHeader}>
+              <Ionicons name="fitness" size={24} color={COLORS.secondary} />
+              <Text style={[styles.progressTitle, { color: COLORS.accent }]}>
+                Active Minutes
+              </Text>
+            </View>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${Math.min(activeMinutesProgressPercentage, 100)}%`,
+                    backgroundColor: COLORS.secondary,
+                  },
+                ]}
+              />
+            </View>
+            <Text style={[styles.progressText, { color: COLORS.accent }]}>
+              {fitnessData.activeMinutes}/{goals.activeMinutes} minutes
+            </Text>
+          </View>
+
+          {/* Additional Fitness Metrics */}
+          <View style={styles.metricsContainer}>
+            <View style={styles.metricCard}>
+              <Ionicons name="location" size={20} color={COLORS.secondary} />
+              <Text style={[styles.metricValue, { color: COLORS.accent }]}>
+                {fitnessData.distance.toFixed(1)} km
+              </Text>
+              <Text style={[styles.metricLabel, { color: COLORS.accent }]}>
+                Distance
+              </Text>
+            </View>
+
+            <View style={styles.metricCard}>
+              <Ionicons name="trending-up" size={20} color={COLORS.secondary} />
+              <Text style={[styles.metricValue, { color: COLORS.accent }]}>
+                {fitnessData.floorsClimbed}
+              </Text>
+              <Text style={[styles.metricLabel, { color: COLORS.accent }]}>
+                Floors
+              </Text>
+            </View>
+
+            <View style={styles.metricCard}>
+              <Ionicons name="heart" size={20} color={COLORS.secondary} />
+              <Text style={[styles.metricValue, { color: COLORS.accent }]}>
+                {fitnessData.heartRate || 0}
+              </Text>
+              <Text style={[styles.metricLabel, { color: COLORS.accent }]}>
+                BPM
+              </Text>
+            </View>
           </View>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>
+            Quick Actions
+          </Text>
 
           <View style={styles.actionButtons}>
             <TouchableOpacity
@@ -205,12 +450,12 @@ const MainScreen = ({ navigation }) => {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={["#10b981", "#059669"]}
+                colors={[COLORS.secondary, COLORS.primary]}
                 style={styles.actionGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="restaurant" size={32} color="white" />
+                <Ionicons name="restaurant" size={32} color={COLORS.accent} />
                 <Text style={styles.actionTitle}>Track Meal</Text>
                 <Text style={styles.actionSubtitle}>Log your nutrition</Text>
               </LinearGradient>
@@ -222,12 +467,12 @@ const MainScreen = ({ navigation }) => {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={["#6366f1", "#4f46e5"]}
+                colors={[COLORS.secondary, COLORS.primary]}
                 style={styles.actionGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="fitness" size={32} color="white" />
+                <Ionicons name="fitness" size={32} color={COLORS.accent} />
                 <Text style={styles.actionTitle}>Track Workout</Text>
                 <Text style={styles.actionSubtitle}>Record your exercise</Text>
               </LinearGradient>
@@ -246,12 +491,12 @@ const MainScreen = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={["#f59e0b", "#d97706"]}
+          colors={[COLORS.secondary, COLORS.primary]}
           style={styles.floatingGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <Ionicons name="sparkles" size={24} color="white" />
+          <Ionicons name="sparkles" size={24} color={COLORS.accent} />
         </LinearGradient>
       </TouchableOpacity>
     </SafeAreaView>
@@ -261,7 +506,7 @@ const MainScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: "row",
@@ -274,11 +519,9 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#1e293b",
   },
   timeText: {
     fontSize: 14,
-    color: "#64748b",
     marginTop: 2,
   },
   profileButton: {
@@ -286,23 +529,47 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     paddingHorizontal: 20,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   greeting: {
     fontSize: 18,
-    color: "#64748b",
     marginBottom: 5,
   },
   userName: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#1e293b",
     marginBottom: 8,
   },
   welcomeSubtext: {
     fontSize: 16,
-    color: "#64748b",
     lineHeight: 22,
+  },
+  syncContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  syncButton: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  syncButtonDisabled: {
+    opacity: 0.7,
+  },
+  syncGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  syncButtonText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: COLORS.accent,
+    marginLeft: 8,
+  },
+  rotatingIcon: {
+    transform: [{ rotate: "360deg" }],
   },
   progressContainer: {
     paddingHorizontal: 20,
@@ -311,15 +578,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1e293b",
     marginBottom: 15,
   },
   progressCard: {
-    backgroundColor: "white",
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 15,
-    shadowColor: "#000",
+    shadowColor: COLORS.secondary,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -327,6 +593,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   progressHeader: {
     flexDirection: "row",
@@ -336,24 +604,46 @@ const styles = StyleSheet.create({
   progressTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1e293b",
     marginLeft: 8,
   },
   progressBar: {
     height: 8,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: COLORS.inputBg,
     borderRadius: 4,
     marginBottom: 8,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#6366f1",
+    backgroundColor: COLORS.secondary,
     borderRadius: 4,
   },
   progressText: {
     fontSize: 14,
-    color: "#64748b",
+  },
+  metricsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  metricCard: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    padding: 15,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  metricValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 5,
+  },
+  metricLabel: {
+    fontSize: 12,
+    marginTop: 2,
   },
   actionsContainer: {
     paddingHorizontal: 20,
@@ -367,7 +657,7 @@ const styles = StyleSheet.create({
     width: (width - 50) / 2,
     borderRadius: 16,
     overflow: "hidden",
-    shadowColor: "#000",
+    shadowColor: COLORS.secondary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -385,7 +675,7 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "white",
+    color: COLORS.accent,
     marginTop: 8,
     marginBottom: 4,
   },
@@ -398,7 +688,7 @@ const styles = StyleSheet.create({
     bottom: 30,
     right: 20,
     borderRadius: 30,
-    shadowColor: "#000",
+    shadowColor: COLORS.secondary,
     shadowOffset: {
       width: 0,
       height: 4,

@@ -29,6 +29,7 @@ model User {
   // Relations
   meals    Meal[]
   workouts Workout[]
+  dailyFitnessData DailyFitnessData[]
 
   @@map("users")
 }
@@ -68,4 +69,25 @@ model Workout {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("workouts")
+}
+
+model DailyFitnessData {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  date            DateTime @db.Date
+  steps            Int?     // Daily step count
+  caloriesBurned  Int?     @map("calories_burned") // Calories burned from activity
+  activeMinutes   Int?     @map("active_minutes") // Active minutes
+  distance        Decimal? @db.Decimal(8, 2) // Distance in kilometers
+  floorsClimbed   Int?     @map("floors_climbed") // Floors climbed
+  heartRate       Int?     @map("heart_rate") // Average heart rate
+  sleepHours      Decimal? @db.Decimal(4, 2) @map("sleep_hours") // Hours of sleep
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("daily_fitness_data")
 } 

@@ -19,6 +19,20 @@ import { authService } from "../services/authService";
 
 const { width, height } = Dimensions.get("window");
 
+// Define a color palette for the app
+const COLORS = {
+  primary: "#111111", // Black (main)
+  secondary: "#e11d48", // Red
+  accent: "#fff", // White
+  background: "#111111", // Black background
+  text: "#fff", // White text
+  inputBg: "#222", // Slightly lighter black for inputs
+  border: "#e11d48", // Red border
+  placeholder: "#9ca3af",
+  subtitle: "#e11d48", // Red for subtitles
+  error: "#e11d48",
+};
+
 const ProfileSetupScreen = ({ navigation, route }) => {
   const isEditMode = route?.params?.edit;
   const [formData, setFormData] = useState({
@@ -148,7 +162,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
         style={styles.keyboardView}
       >
         <LinearGradient
-          colors={["#6366f1", "#4f46e5", "#3730a3"]}
+          colors={[COLORS.primary, COLORS.secondary]}
           style={styles.backgroundGradient}
         >
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -164,17 +178,17 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                   }
                 }}
               >
-                <Ionicons name="arrow-back" size={28} color="white" />
+                <Ionicons name="arrow-back" size={28} color={COLORS.accent} />
               </TouchableOpacity>
               <Ionicons
                 name={isEditMode ? "person" : "person-add"}
                 size={40}
-                color="white"
+                color={COLORS.accent}
               />
-              <Text style={styles.headerTitle}>
+              <Text style={[styles.headerTitle, { color: COLORS.accent }]}>
                 {isEditMode ? "Edit Your Profile" : "Complete Your Profile"}
               </Text>
-              <Text style={styles.headerSubtitle}>
+              <Text style={[styles.headerSubtitle, { color: COLORS.accent }]}>
                 {isEditMode
                   ? "Update your personal information"
                   : "Help us personalize your fitness experience"}
@@ -185,20 +199,22 @@ const ProfileSetupScreen = ({ navigation, route }) => {
             <View style={styles.formContainer}>
               {/* Required Fields Section */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Required Information</Text>
+                <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>
+                  Required Information
+                </Text>
 
                 {/* Display Name */}
                 <View style={styles.inputContainer}>
                   <Ionicons
                     name="person"
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Display Name"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={COLORS.placeholder}
                     value={formData.displayName}
                     onChangeText={(value) =>
                       handleInputChange("displayName", value)
@@ -212,13 +228,13 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                   <Ionicons
                     name="calendar"
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Age"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={COLORS.placeholder}
                     value={formData.age}
                     onChangeText={(value) => handleInputChange("age", value)}
                     keyboardType="numeric"
@@ -230,13 +246,13 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                   <Ionicons
                     name="scale"
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Weight (kg)"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={COLORS.placeholder}
                     value={formData.weight}
                     onChangeText={(value) => handleInputChange("weight", value)}
                     keyboardType="numeric"
@@ -248,13 +264,13 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                   <Ionicons
                     name="resize"
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Height (cm)"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={COLORS.placeholder}
                     value={formData.height}
                     onChangeText={(value) => handleInputChange("height", value)}
                     keyboardType="numeric"
@@ -266,13 +282,13 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                   <Ionicons
                     name="fitness"
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Exercise frequency per week (0-7)"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={COLORS.placeholder}
                     value={formData.exerciseFrequency}
                     onChangeText={(value) =>
                       handleInputChange("exerciseFrequency", value)
@@ -284,8 +300,12 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 
               {/* Optional Fields Section */}
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Optional Information</Text>
-                <Text style={styles.sectionSubtitle}>
+                <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>
+                  Optional Information
+                </Text>
+                <Text
+                  style={[styles.sectionSubtitle, { color: COLORS.accent }]}
+                >
                   Help us provide better recommendations
                 </Text>
 
@@ -294,13 +314,13 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                   <Ionicons
                     name="list"
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={[styles.textInput, styles.textArea]}
                     placeholder="How do you usually exercise? (e.g., running, gym, yoga)"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={COLORS.placeholder}
                     value={formData.exerciseRoutine}
                     onChangeText={(value) =>
                       handleInputChange("exerciseRoutine", value)
@@ -316,13 +336,13 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                   <Ionicons
                     name="restaurant"
                     size={20}
-                    color="#6366f1"
+                    color={COLORS.secondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={[styles.textInput, styles.textArea]}
                     placeholder="How do you generally eat? (e.g., vegetarian, high protein, etc.)"
-                    placeholderTextColor="#9ca3af"
+                    placeholderTextColor={COLORS.placeholder}
                     value={formData.eatingHabits}
                     onChangeText={(value) =>
                       handleInputChange("eatingHabits", value)
@@ -345,7 +365,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={["#10b981", "#059669"]}
+                  colors={[COLORS.secondary, COLORS.primary]}
                   style={styles.submitGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -372,7 +392,7 @@ const ProfileSetupScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: COLORS.background,
   },
   keyboardView: {
     flex: 1,
@@ -388,23 +408,23 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "white",
     marginTop: 10,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
     marginTop: 5,
     textAlign: "center",
   },
   formContainer: {
-    backgroundColor: "white",
+    backgroundColor: COLORS.primary,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 20,
     paddingTop: 30,
     paddingBottom: 50,
     minHeight: height * 0.7,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   section: {
     marginBottom: 30,
@@ -412,34 +432,32 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1f2937",
     marginBottom: 10,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: "#6b7280",
     marginBottom: 20,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9fafb",
+    backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     marginBottom: 15,
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: COLORS.border,
   },
   textAreaContainer: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#f9fafb",
+    backgroundColor: COLORS.inputBg,
     borderRadius: 12,
     marginBottom: 15,
     paddingHorizontal: 15,
     paddingTop: 15,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: COLORS.border,
   },
   inputIcon: {
     marginRight: 10,
@@ -447,7 +465,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 16,
-    color: "#1f2937",
+    color: COLORS.accent,
     paddingVertical: 15,
   },
   textArea: {
@@ -467,7 +485,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   submitButtonText: {
-    color: "white",
+    color: COLORS.accent,
     fontSize: 18,
     fontWeight: "bold",
   },
