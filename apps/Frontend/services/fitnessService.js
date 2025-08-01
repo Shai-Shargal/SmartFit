@@ -5,10 +5,24 @@ class FitnessService {
     this.baseURL = "/fitness"; // Remove the /api prefix since apiService already includes it
   }
 
+  // Get user's timezone
+  getUserTimezone() {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    console.log(`[FitnessService] Detected user timezone: ${timezone}`);
+    return timezone;
+  }
+
   // Get today's fitness data for a user
   async getTodayFitnessData(userId) {
     try {
-      const response = await apiService.get(`${this.baseURL}/today/${userId}`);
+      const timezone = this.getUserTimezone();
+      console.log(
+        `[FitnessService] Fetching today's fitness data for user ${userId} with timezone ${timezone}`
+      );
+      const response = await apiService.get(`${this.baseURL}/today/${userId}`, {
+        params: { timezone },
+      });
+      console.log(`[FitnessService] Received fitness data:`, response);
       return response; // The response is already the data, not response.data
     } catch (error) {
       console.error("Error fetching today's fitness data:", error);
@@ -19,10 +33,19 @@ class FitnessService {
   // Update today's fitness data with HealthKit data
   async updateTodayFitnessData(userId, fitnessData) {
     try {
+      const timezone = this.getUserTimezone();
+      console.log(
+        `[FitnessService] Updating fitness data for user ${userId} with timezone ${timezone}`
+      );
+      console.log(`[FitnessService] Fitness data to update:`, fitnessData);
       const response = await apiService.post(
         `${this.baseURL}/update/${userId}`,
-        fitnessData
+        fitnessData,
+        {
+          params: { timezone },
+        }
       );
+      console.log(`[FitnessService] Update response:`, response);
       return response; // The response is already the data, not response.data
     } catch (error) {
       console.error("Error updating fitness data:", error);

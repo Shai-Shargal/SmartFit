@@ -30,6 +30,7 @@ model User {
   meals    Meal[]
   workouts Workout[]
   dailyFitnessData DailyFitnessData[]
+  dailyMealSummaries DailyMealSummary[]
 
   @@map("users")
 }
@@ -42,7 +43,8 @@ model Meal {
   protein   Decimal? @db.Decimal(5, 2)
   carbs     Decimal? @db.Decimal(5, 2)
   fat       Decimal? @db.Decimal(5, 2)
-  mealType  String?  @map("meal_type") // breakfast, lunch, dinner, snack
+  mealType  String   @map("meal_type") // breakfast, lunch, dinner, snack
+  date      DateTime @db.Date
   notes     String?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -51,6 +53,28 @@ model Meal {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("meals")
+}
+
+model DailyMealSummary {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  date            DateTime @db.Date
+  totalCalories   Int?     @map("total_calories")
+  totalProtein    Decimal? @db.Decimal(8, 2) @map("total_protein")
+  totalCarbs      Decimal? @db.Decimal(8, 2) @map("total_carbs")
+  totalFat        Decimal? @db.Decimal(8, 2) @map("total_fat")
+  breakfastCalories Int?   @map("breakfast_calories")
+  lunchCalories     Int?   @map("lunch_calories")
+  dinnerCalories    Int?   @map("dinner_calories")
+  snackCalories     Int?   @map("snack_calories")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("daily_meal_summaries")
 }
 
 model Workout {

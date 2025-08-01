@@ -107,13 +107,45 @@ class ApiService {
   }
 
   // GET request
-  async get(endpoint) {
-    return this.request(endpoint, { method: "GET" });
+  async get(endpoint, options = {}) {
+    let url = endpoint;
+
+    // Handle query parameters
+    if (options.params) {
+      const params = new URLSearchParams();
+      Object.keys(options.params).forEach((key) => {
+        if (options.params[key] !== undefined && options.params[key] !== null) {
+          params.append(key, options.params[key]);
+        }
+      });
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
+    return this.request(url, { method: "GET" });
   }
 
   // POST request
-  async post(endpoint, data) {
-    return this.request(endpoint, {
+  async post(endpoint, data, options = {}) {
+    let url = endpoint;
+
+    // Handle query parameters
+    if (options.params) {
+      const params = new URLSearchParams();
+      Object.keys(options.params).forEach((key) => {
+        if (options.params[key] !== undefined && options.params[key] !== null) {
+          params.append(key, options.params[key]);
+        }
+      });
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
+    return this.request(url, {
       method: "POST",
       body: JSON.stringify(data),
     });

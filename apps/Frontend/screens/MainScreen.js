@@ -13,6 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { authService } from "../services/authService";
 import { fitnessService } from "../services/fitnessService";
+import { healthKitService } from "../services/healthKitService";
 
 const { width, height } = Dimensions.get("window");
 
@@ -147,6 +148,27 @@ const MainScreen = ({ navigation }) => {
       console.log("User profile:", profile);
       if (profile && profile.id) {
         console.log("User ID:", profile.id);
+
+        // First, try to sync HealthKit data if available
+        if (healthKitService.isHealthKitAvailable()) {
+          try {
+            console.log("Syncing HealthKit data...");
+            await healthKitService.requestPermissions();
+            const syncedData = await healthKitService.syncHealthKitData(
+              profile.id
+            );
+            console.log("HealthKit data synced:", syncedData);
+            setFitnessData(syncedData);
+            return; // Use the synced data
+          } catch (error) {
+            console.log(
+              "HealthKit sync failed, falling back to server data:",
+              error
+            );
+          }
+        }
+
+        // Fallback to server data
         const data = await fitnessService.getTodayFitnessData(profile.id);
         console.log("Fitness data received:", data);
         setFitnessData(data);
@@ -156,6 +178,24 @@ const MainScreen = ({ navigation }) => {
     } catch (error) {
       console.error("Error fetching fitness data:", error);
       // Keep default values if fetch fails
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const syncHealthKitData = async () => {
+    try {
+      setIsLoading(true);
+      console.log("Manually syncing HealthKit data...");
+      const profile = await authService.getUserProfile();
+      if (profile && profile.id) {
+        await healthKitService.requestPermissions();
+        const syncedData = await healthKitService.syncHealthKitData(profile.id);
+        console.log("HealthKit data synced:", syncedData);
+        setFitnessData(syncedData);
+      }
+    } catch (error) {
+      console.error("Error syncing HealthKit data:", error);
     } finally {
       setIsLoading(false);
     }
