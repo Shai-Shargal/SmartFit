@@ -1,15 +1,15 @@
-import { apiService } from "./apiService";
+import apiService from "./apiService";
 
 class FitnessService {
   constructor() {
-    this.baseURL = "/api/fitness";
+    this.baseURL = "/fitness"; // Remove the /api prefix since apiService already includes it
   }
 
   // Get today's fitness data for a user
   async getTodayFitnessData(userId) {
     try {
       const response = await apiService.get(`${this.baseURL}/today/${userId}`);
-      return response.data;
+      return response; // The response is already the data, not response.data
     } catch (error) {
       console.error("Error fetching today's fitness data:", error);
       throw error;
@@ -23,7 +23,7 @@ class FitnessService {
         `${this.baseURL}/update/${userId}`,
         fitnessData
       );
-      return response.data;
+      return response; // The response is already the data, not response.data
     } catch (error) {
       console.error("Error updating fitness data:", error);
       throw error;
@@ -39,7 +39,7 @@ class FitnessService {
           endDate,
         },
       });
-      return response.data;
+      return response; // The response is already the data, not response.data
     } catch (error) {
       console.error("Error fetching fitness data range:", error);
       throw error;

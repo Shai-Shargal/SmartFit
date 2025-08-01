@@ -8,15 +8,11 @@ import {
   SafeAreaView,
   Dimensions,
   RefreshControl,
-  Alert,
-  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { apiService } from "../services/apiService";
 import { authService } from "../services/authService";
 import { fitnessService } from "../services/fitnessService";
-import { healthKitService } from "../services/healthKitService";
 
 const { width, height } = Dimensions.get("window");
 
@@ -54,14 +50,13 @@ const MainScreen = ({ navigation }) => {
   });
 
   const [currentTime, setCurrentTime] = useState("");
+  const [currentDate, setCurrentDate] = useState("");
   const [greetingData, setGreetingData] = useState({
     greeting: "Good morning",
     username: "User",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [syncingHealthKit, setSyncingHealthKit] = useState(false);
-  const [healthKitAvailable, setHealthKitAvailable] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -72,17 +67,20 @@ const MainScreen = ({ navigation }) => {
         hour12: true,
       });
       setCurrentTime(timeString);
+
+      const dateString = now.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      setCurrentDate(dateString);
     };
 
     updateTime();
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    // Check if HealthKit is available
-    setHealthKitAvailable(healthKitService.isHealthKitAvailable());
   }, []);
 
   useEffect(() => {
@@ -144,10 +142,16 @@ const MainScreen = ({ navigation }) => {
   const fetchFitnessData = async () => {
     try {
       setIsLoading(true);
+      console.log("Fetching fitness data...");
       const profile = await authService.getUserProfile();
+      console.log("User profile:", profile);
       if (profile && profile.id) {
+        console.log("User ID:", profile.id);
         const data = await fitnessService.getTodayFitnessData(profile.id);
+        console.log("Fitness data received:", data);
         setFitnessData(data);
+      } else {
+        console.log("No user profile or ID found");
       }
     } catch (error) {
       console.error("Error fetching fitness data:", error);
@@ -161,52 +165,6 @@ const MainScreen = ({ navigation }) => {
     setRefreshing(true);
     await fetchFitnessData();
     setRefreshing(false);
-  };
-
-  const handleSyncHealthKit = async () => {
-    if (!healthKitAvailable) {
-      Alert.alert(
-        "HealthKit Not Available",
-        "HealthKit is only available on iOS devices.",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
-    try {
-      setSyncingHealthKit(true);
-
-      // Request permissions first
-      await healthKitService.requestPermissions();
-
-      // Get user profile
-      const profile = await authService.getUserProfile();
-      if (!profile || !profile.id) {
-        throw new Error("User profile not found");
-      }
-
-      // Sync HealthKit data with backend
-      const updatedData = await healthKitService.syncHealthKitData(profile.id);
-
-      // Update local state
-      setFitnessData(updatedData);
-
-      Alert.alert(
-        "Sync Successful",
-        "Your fitness data has been synced from HealthKit!",
-        [{ text: "OK" }]
-      );
-    } catch (error) {
-      console.error("Error syncing HealthKit data:", error);
-      Alert.alert(
-        "Sync Failed",
-        error.message ||
-          "Failed to sync data from HealthKit. Please try again.",
-        [{ text: "OK" }]
-      );
-    } finally {
-      setSyncingHealthKit(false);
-    }
   };
 
   const handleTrackMeal = () => {
@@ -241,16 +199,16 @@ const MainScreen = ({ navigation }) => {
 
   const goals = getDefaultGoals();
   const stepsProgressPercentage = fitnessService.calculateProgressPercentage(
-    fitnessData.steps,
+    Number(fitnessData.steps || 0),
     goals.steps
   );
   const caloriesProgressPercentage = fitnessService.calculateProgressPercentage(
-    fitnessData.caloriesBurned,
+    Number(fitnessData.caloriesBurned || 0),
     goals.caloriesBurned
   );
   const activeMinutesProgressPercentage =
     fitnessService.calculateProgressPercentage(
-      fitnessData.activeMinutes,
+      Number(fitnessData.activeMinutes || 0),
       goals.activeMinutes
     );
 
@@ -276,6 +234,9 @@ const MainScreen = ({ navigation }) => {
             <Text style={[styles.timeText, { color: COLORS.accent }]}>
               {currentTime}
             </Text>
+            <Text style={[styles.dateText, { color: COLORS.accent }]}>
+              {currentDate}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.profileButton}
@@ -294,38 +255,6 @@ const MainScreen = ({ navigation }) => {
             Ready to crush your fitness goals today?
           </Text>
         </View>
-
-        {/* HealthKit Sync Button (iOS only) */}
-        {healthKitAvailable && (
-          <View style={styles.syncContainer}>
-            <TouchableOpacity
-              style={[
-                styles.syncButton,
-                syncingHealthKit && styles.syncButtonDisabled,
-              ]}
-              onPress={handleSyncHealthKit}
-              disabled={syncingHealthKit}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={[COLORS.secondary, COLORS.primary]}
-                style={styles.syncGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons
-                  name={syncingHealthKit ? "sync" : "refresh"}
-                  size={20}
-                  color={COLORS.accent}
-                  style={syncingHealthKit && styles.rotatingIcon}
-                />
-                <Text style={styles.syncButtonText}>
-                  {syncingHealthKit ? "Syncing..." : "Sync HealthKit Data"}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Progress Summary */}
         <View style={styles.progressContainer}>
@@ -350,7 +279,7 @@ const MainScreen = ({ navigation }) => {
               />
             </View>
             <Text style={[styles.progressText, { color: COLORS.accent }]}>
-              {fitnessData.steps.toLocaleString()}/
+              {Number(fitnessData.steps || 0).toLocaleString()}/
               {goals.steps.toLocaleString()} steps
             </Text>
           </View>
@@ -375,7 +304,8 @@ const MainScreen = ({ navigation }) => {
               />
             </View>
             <Text style={[styles.progressText, { color: COLORS.accent }]}>
-              {fitnessData.caloriesBurned}/{goals.caloriesBurned} kcal
+              {Number(fitnessData.caloriesBurned || 0)}/{goals.caloriesBurned}{" "}
+              kcal
             </Text>
           </View>
 
@@ -399,7 +329,8 @@ const MainScreen = ({ navigation }) => {
               />
             </View>
             <Text style={[styles.progressText, { color: COLORS.accent }]}>
-              {fitnessData.activeMinutes}/{goals.activeMinutes} minutes
+              {Number(fitnessData.activeMinutes || 0)}/{goals.activeMinutes}{" "}
+              minutes
             </Text>
           </View>
 
@@ -408,7 +339,7 @@ const MainScreen = ({ navigation }) => {
             <View style={styles.metricCard}>
               <Ionicons name="location" size={20} color={COLORS.secondary} />
               <Text style={[styles.metricValue, { color: COLORS.accent }]}>
-                {fitnessData.distance.toFixed(1)} km
+                {Number(fitnessData.distance || 0).toFixed(1)} km
               </Text>
               <Text style={[styles.metricLabel, { color: COLORS.accent }]}>
                 Distance
@@ -418,7 +349,7 @@ const MainScreen = ({ navigation }) => {
             <View style={styles.metricCard}>
               <Ionicons name="trending-up" size={20} color={COLORS.secondary} />
               <Text style={[styles.metricValue, { color: COLORS.accent }]}>
-                {fitnessData.floorsClimbed}
+                {Number(fitnessData.floorsClimbed || 0)}
               </Text>
               <Text style={[styles.metricLabel, { color: COLORS.accent }]}>
                 Floors
@@ -428,7 +359,7 @@ const MainScreen = ({ navigation }) => {
             <View style={styles.metricCard}>
               <Ionicons name="heart" size={20} color={COLORS.secondary} />
               <Text style={[styles.metricValue, { color: COLORS.accent }]}>
-                {fitnessData.heartRate || 0}
+                {Number(fitnessData.heartRate || 0)}
               </Text>
               <Text style={[styles.metricLabel, { color: COLORS.accent }]}>
                 BPM
@@ -524,6 +455,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
+  dateText: {
+    fontSize: 14,
+    marginTop: 2,
+  },
   profileButton: {
     padding: 5,
   },
@@ -543,33 +478,6 @@ const styles = StyleSheet.create({
   welcomeSubtext: {
     fontSize: 16,
     lineHeight: 22,
-  },
-  syncContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  syncButton: {
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  syncButtonDisabled: {
-    opacity: 0.7,
-  },
-  syncGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  syncButtonText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: COLORS.accent,
-    marginLeft: 8,
-  },
-  rotatingIcon: {
-    transform: [{ rotate: "360deg" }],
   },
   progressContainer: {
     paddingHorizontal: 20,
